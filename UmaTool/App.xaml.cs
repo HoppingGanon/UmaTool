@@ -72,7 +72,7 @@ namespace UmaTool
                 Window.Current.Activate();
 
                 // 設定の読み込み
-                Common.CommonMethods.loadAppSettings();
+                Common.AppSettings.loadAppSettings();
             }
         }
 

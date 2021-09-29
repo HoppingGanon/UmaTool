@@ -16,9 +16,21 @@ using Windows.UI.Composition;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Hosting;
+using System.Drawing;
+using System.IO;
+using Windows.Graphics.Imaging;
+using Windows.UI.Xaml.Media.Imaging;
+using Windows.Storage.Streams;
+using Windows.Media.Ocr;
 
 namespace UmaTool.Common
 {
+    public struct ResultPath
+    {
+        public Exception ex;
+        public string path;
+    };
+
     class ScreenShoter
     {
         // Capture API objects.
@@ -33,12 +45,14 @@ namespace UmaTool.Common
         private Compositor _compositor;
         private CompositionDrawingSurface _surface;
         private CanvasBitmap _currentFrame;
-        private string _screenshotFilename = "test.png";
 
         private GraphicsCapturePicker picker = null;
         private GraphicsCaptureItem item = null;
 
-        public void Setup(Page page)
+        private SpriteVisual _visual = null;
+
+
+        public void Setup(Page page,Vector3 position, Vector2 size)
         {
             _canvasDevice = new CanvasDevice();
 
@@ -49,37 +63,80 @@ namespace UmaTool.Common
             _compositor = Window.Current.Compositor;
 
             _surface = _compositionGraphicsDevice.CreateDrawingSurface(
-                new Size(10, 10),
+                new Windows.Foundation.Size(16, 16),
                 DirectXPixelFormat.B8G8R8A8UIntNormalized,
                 DirectXAlphaMode.Premultiplied);    // This is the only value that currently works with
                                                     // the composition APIs.
 
-            var visual = _compositor.CreateSpriteVisual();
-            visual.RelativeSizeAdjustment = Vector2.One;
+            _visual = _compositor.CreateSpriteVisual();
+            _visual.Offset = position;
+            _visual.Size = size;
+
             var brush = _compositor.CreateSurfaceBrush(_surface);
-            brush.HorizontalAlignmentRatio = 0.5f;
-            brush.VerticalAlignmentRatio = 0.5f;
+            brush.HorizontalAlignmentRatio = 1f;
+            brush.VerticalAlignmentRatio = 1f;
             brush.Stretch = CompositionStretch.Uniform;
-            visual.Brush = brush;
-            ElementCompositionPreview.SetElementChildVisual(page, visual);
+            //brush.CenterPoint = new Vector2(1000,1000);
+            _visual.Brush = brush;
+            ElementCompositionPreview.SetElementChildVisual(page, _visual);
         }
 
-        public async Task PickWindow() {
+
+        public SpriteVisual visual{
+            set { this._visual = value; }
+            get { return this._visual; }
+        }
+
+        public float visualX
+        {
+            set
+            {
+                var vec = this._visual.Offset;
+                vec.X = value;
+            }
+            get { return this._visual.Offset.X; }
+        }
+
+        public float visualY
+        {
+            set
+            {
+                var vec = this._visual.Offset;
+                vec.Y = value;
+            }
+            get { return this._visual.Offset.Y; }
+        }
+
+        public string GetWindowName() {
+            if (this.item == null)
+            {
+                return "";
+            }
+            else
+            {
+                return this.item.DisplayName;
+            }
+        }
+
+        public async Task<string> PickWindow() {
             // The GraphicsCapturePicker follows the same pattern the
             // file pickers do.
             picker = new GraphicsCapturePicker();
             if (picker == null)
             {
-                return;
+                return "";
             }
             item = await picker.PickSingleItemAsync();
+
+            if (item == null) return "";
+            else return item.DisplayName;
         }
 
         public void StartCaptureAsync()
         {
             if (picker == null || item == null)
             {
-                CommonMethods.ToastSimpleMessage("ウィンドウが指定されていません", toastType: ToastType.Caution);
+                BaseCommonMethods.ToastSimpleMessage("ウィンドウが指定されていません", toastType: MessageType.Caution);
                 return;
             }
 
@@ -87,14 +144,14 @@ namespace UmaTool.Common
             // control without making a selection or hit Cancel.
             if (item != null)
             {
-                StartCaptureInternal(item);
+                StartCaptureInternal(this.item);
             }
         }
 
         private void StartCaptureInternal(GraphicsCaptureItem item)
         {
             // Stop the previous capture if we had one.
-            StopCapture();
+            StopCaptureLite();
 
             _item = item;
             _lastSize = _item.Size;
@@ -127,16 +184,23 @@ namespace UmaTool.Common
             };
 
             _session = _framePool.CreateCaptureSession(_item);
+            _session.IsCursorCaptureEnabled = false;
             _session.StartCapture();
         }
 
-        public void StopCapture()
+        public void StopCaptureLite()
         {
-            _session?.Dispose();
-            _framePool?.Dispose();
-            _item = null;
-            _session = null;
-            _framePool = null;
+            this._session?.Dispose();
+            this._framePool?.Dispose();
+            this._item = null;
+            this._session = null;
+            this._framePool = null;
+        }
+
+        public void StopCapture() {
+            StopCaptureLite();
+            this.item = null;
+            this.picker = null;
         }
 
         private void ProcessFrame(Direct3D11CaptureFrame frame)
@@ -224,28 +288,144 @@ namespace UmaTool.Common
             } while (_canvasDevice == null);
         }
 
-        private void Button_ClickAsync(object sender, RoutedEventArgs e)
-        {
-            StartCaptureAsync();
+        public bool isAvarableScreenShot() {
+            return this._currentFrame != null;
         }
 
-        private async void ScreenshotButton_ClickAsync(object sender, RoutedEventArgs e)
+        /// <summary>
+        /// スクリーンショットを撮影するタスク
+        /// Exception型で返す
+        /// nullなら成功、例外があればそのまま返す
+        /// </summary>
+        /// <param name="pathObject"></param>
+        /// <param name="fileName"></param>
+        /// <returns></returns>
+        public async Task<ResultPath> Screenshot(StorageFolder pathObject, string fileName)
         {
-            await SaveImageAsync(_screenshotFilename, _currentFrame);
+            try
+            {
+                return new ResultPath() {
+                    ex = null,
+                    path = await SaveImageAsync(pathObject, fileName, _currentFrame)
+                };
+            }
+            catch(Exception ex)
+            {
+                return new ResultPath()
+                {
+                    ex = ex,
+                    path = ""
+                };
+            }
         }
 
-        private async Task SaveImageAsync(string filename, CanvasBitmap frame)
+        private async Task<string> SaveImageAsync(StorageFolder pathObject,string fileName, CanvasBitmap frame, Boolean isOverwrite = false)
         {
-            StorageFolder pictureFolder = KnownFolders.SavedPictures;
-
-            StorageFile file = await pictureFolder.CreateFileAsync(
-                filename,
-                CreationCollisionOption.ReplaceExisting);
+            StorageFile file;
+            if (isOverwrite)
+            {
+                file = await pathObject.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+            }
+            else
+            {
+                file = await pathObject.CreateFileAsync(fileName, CreationCollisionOption.GenerateUniqueName);
+            }
 
             using (var fileStream = await file.OpenAsync(FileAccessMode.ReadWrite))
             {
                 await frame.SaveAsync(fileStream, CanvasBitmapFileFormat.Png, 1f);
             }
+
+            return file.Path;
+
         }
+
+        /// <summary>
+        /// 現在表示中の画面をBitmap形式で返す
+        /// </summary>
+        /// <returns></returns>
+        public Bitmap GetCurrentBitMap() {
+            var ms = new MemoryStream(
+                _currentFrame.GetPixelBytes(),
+                (int)Math.Floor(_currentFrame.Bounds.Width),
+                (int)Math.Floor(_currentFrame.Bounds.Height)
+                );
+            return new Bitmap(ms);
+        }
+
+        /// <summary>
+        /// 現在表示中の画面をSoftwareBitmap形式で返す
+        /// </summary>
+        /// <param name="left">取得する範囲の左端</param>
+        /// <param name="top">取得する範囲の上端</param>
+        /// <param name="width">取得する範囲の幅</param>
+        /// <param name="height">取得する範囲の高さ</param>
+        /// <returns></returns>
+        public SoftwareBitmap GetCurrentSoftwareBitMap(int left = -1, int top = -1,int width = -1, int height = -1 )
+        {
+            var fWidth = (int)Math.Floor(this.frameWidth);
+            var fHeight = (int)Math.Floor(this.frameHeight);
+
+            if (left < 0 && top< 0 && width < 0 && height < 0)
+            {
+                //全引数省略時
+                return CommonMethods.BytesToSoftwareBMP(
+                    _currentFrame.GetPixelBytes(),
+                    fWidth,
+                    fHeight
+                    );
+            }
+            else
+            {   
+                // 省略されてなかった場合、値を加工する
+                left = left < 0 ? 0 : left;
+                top = top < 0 ? 0 : top;
+                width = width < 0 ? fWidth - left : width;
+                height = height < 0 ? fHeight - top : height;
+
+                //例外が発生した場合
+                if (width < 0) throw new ArgumentException("左端が画像の幅を超えています");
+                if (height < 0) throw new ArgumentException("上端が画像の高さを超えています");
+                if (left + width > fWidth) width = fWidth - left;
+                if (top + height > fHeight) width = fHeight - top;
+
+                //配列の取得
+                var bytes = _currentFrame.GetPixelBytes();
+
+                //配列の再生成(幅x高さxビット深)
+                var croppedBytes = new Byte[width * height * 4];
+
+                //再生成した配列にクリッピング後のデータを格納
+                int x;
+                for (int y = 0; y < height; y++) {
+                    for (x = 0; x < width; x++)
+                    {
+                        //BGRAの順番に各8bit
+                        croppedBytes[y * width * 4 + x * 4] = bytes[(top + y) * fWidth * 4 + (left + x) * 4];
+                        croppedBytes[y * width * 4 + x * 4 + 1] = bytes[(top + y) * fWidth * 4 + (left + x) * 4 + 1];
+                        croppedBytes[y * width * 4 + x * 4 + 2] = bytes[(top + y) * fWidth * 4 + (left + x) * 4 + 2];
+                        croppedBytes[y * width * 4 + x * 4 + 3] = bytes[(top + y) * fWidth * 4 + (left + x) * 4 + 3];
+                    }
+                }
+
+                return CommonMethods.BytesToSoftwareBMP(
+                    croppedBytes,
+                    width,
+                    height
+                    );
+            }
+
+        }
+
+        public double frameWidth
+        {
+            get { return this._currentFrame.Bounds.Width; }
+        }
+
+        public double frameHeight
+        {
+            get { return this._currentFrame.Bounds.Height; }
+        }
+
     }
 }

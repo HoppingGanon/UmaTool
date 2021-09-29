@@ -120,9 +120,10 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Common\AppSettings.cs" />
-    <Compile Include="Common\ScreenShoter.cs" />
-    <Compile Include="Common\CommonValues.cs" />
     <Compile Include="Common\CommonMethods.cs" />
+    <Compile Include="Common\ScreenShoter.cs" />
+    <Compile Include="Common\GrobalValues.cs" />
+    <Compile Include="Common\BaseCommonMethods.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
@@ -169,6 +170,9 @@
     </PackageReference>
     <PackageReference Include="NotificationsExtensions.Win10">
       <Version>14332.0.2</Version>
+    </PackageReference>
+    <PackageReference Include="System.Drawing.Common">
+      <Version>5.0.2</Version>
     </PackageReference>
     <PackageReference Include="Win2D.uwp">
       <Version>1.26.0</Version>

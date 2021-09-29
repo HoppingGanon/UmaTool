@@ -6,16 +6,7 @@ using System.Threading.Tasks;
 
 namespace UmaTool.Common
 {
-    enum ToastType
-    {
-        Success,
-        Information,
-        Caution,
-        Error,
-        Custom
-    }
-
-    class CommonValues
+    class GrobalValues
     {
         public static AppSettings appSettings = new AppSettings();
     }

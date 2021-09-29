@@ -7,15 +7,16 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
+    
     >
-    <Grid Loaded="OnLoadGrid">
+    <Grid x:Name="mainGrid" Loaded="OnLoadGrid">
         <!--グリッドの比率や数を指定-->
         <Grid.RowDefinitions>
             <RowDefinition Height="1*"></RowDefinition>
             <RowDefinition Height="5*"></RowDefinition>
-            <RowDefinition Height="9*"></RowDefinition>
+            <RowDefinition Height="8*"></RowDefinition>
             <RowDefinition Height="1*"></RowDefinition>
-            <RowDefinition Height="2*"></RowDefinition>
+            <RowDefinition Height="3*"></RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="2*"></ColumnDefinition>
@@ -39,16 +40,18 @@
                 <Button x:Name="screenShotButton" Click="Shot" Content="スクリーンショット" FontSize="14" Background="#FFFFFFA0" Padding="20,5,20,5" Margin="0,9,0,0" HorizontalAlignment="Center"/>
                 <Button x:Name="captureButton" Click="Capture" Content="録画開始" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="20,5,20,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" IsEnabled="False" />
                 <Button x:Name="autoAnalyzeButton" Click="StartAutoAnalyze" Content="選択肢自動解析" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="20,5,20,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" />
-                <Button x:Name="adjustPositionButton" Click="AdjustPosition" Content="ウィンドウ微調整" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="20,5,20,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" />
+                <Button x:Name="selectWindowButton" Click="SelectWindow" Content="ウィンドウを選択" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="20,5,20,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" />
             </StackPanel>
 
         </StackPanel>
         <RelativePanel Grid.Row="2" Grid.Column="1">
-            <Rectangle Stroke="Black"
-                       RelativePanel.AlignTopWithPanel="True"
-                       RelativePanel.AlignBottomWithPanel="True"
-                       RelativePanel.AlignLeftWithPanel="True"
-                       RelativePanel.AlignRightWithPanel="True" />
+            <Rectangle  x:Name="previewPanel"
+                        Stroke="Black"
+                        Fill="Black"
+                        RelativePanel.AlignTopWithPanel="True"
+                        RelativePanel.AlignBottomWithPanel="True"
+                        RelativePanel.AlignLeftWithPanel="True"
+                        RelativePanel.AlignRightWithPanel="True" />
         </RelativePanel>
 
         <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5">
@@ -60,9 +63,8 @@
             </StackPanel>
         </StackPanel>
 
-        <StackPanel Grid.Row="4" Grid.ColumnSpan="3">
-            <TextBlock x:Name="ConsoleBox" Text="9.9.9"></TextBlock>
+        <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Orientation="Vertical">
+            <TextBlock x:Name="consoleBox" Text=""></TextBlock>
         </StackPanel>
-
     </Grid>
 </Page>
