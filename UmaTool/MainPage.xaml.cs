@@ -37,14 +37,18 @@ namespace UmaTool
     /// </summary>
     public sealed partial class MainPage : Page
     {
+        // スクリーンプレビューをつかさどるobject
         private ScreenShoter screenShoter;
-        private const int maxConsoleCharsCount = 4096;
+        // 読み込んだイベントデータ
         private EventData[] eventDataList;
-        string[] ocrTexts;
-        int preEventIndex = -1;
-
-        bool isAnalyerActive = false;
-        CancellationTokenSource analyzerTokenSource;
+        // 読み取ったOCRのデータ
+        private string[] ocrTexts;
+        // //前回読み込んだイベント番号(2回連続同じなら処理をスキップ)
+        private int preEventIndex = -1;
+        // 解析がアクティブ状態かどうか
+        private bool isAnalyerActive = false;
+        // 解析を途中で停止するためのキャンセルトークン
+        private CancellationTokenSource analyzerTokenSource;
 
         public MainPage()
         {
@@ -60,6 +64,11 @@ namespace UmaTool
             this.InitializeComponent();
         }
 
+        /// <summary>
+        /// メインフレームがロードされる際のイベント
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void OnLoadGrid(object sender, RoutedEventArgs e)
         {
 
@@ -84,11 +93,14 @@ namespace UmaTool
                     pos,
                     siz
                 );
-            WriteConsole($"position {pos.ToString()}");
-            WriteConsole($"size {previewPanel.ActualSize.ToString()}");
 
         }
 
+        /// <summary>
+        /// 選択肢自動解析ボタンのクリックで発火するメソッド
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void StartAutoAnalyze(object sender, RoutedEventArgs e)
         {
             if (isAnalyerActive)
@@ -99,15 +111,17 @@ namespace UmaTool
                 this.selectWindowButton.IsEnabled = true;
                 this.isAnalyerActive = false;
                 this.resultGrid.Visibility = Visibility.Collapsed;
+                this.autoAnalyzeButton.Content = "選択肢自動解析";
 
             }
-            else
+            else if (screenShoter.isAvarableScreenShot())
             {
-                // 解析非アクティブ状態
+                // 解析非アクティブ状態かつ画面指定状態
 
                 this.selectWindowButton.IsEnabled = false;
-                isAnalyerActive = true;
+                this.isAnalyerActive = true;
                 this.resultGrid.Visibility = Visibility.Visible;
+                this.autoAnalyzeButton.Content = "解析停止";
 
                 if (!screenShoter.isAvarableScreenShot())
                 {
@@ -123,13 +137,28 @@ namespace UmaTool
                     analyzerCancelToken
                     );
             }
+            else
+            {
+                //解析非アクティブ状態でウィンドウ未指定
+                CommonMethods.ToastSimpleMessage("ウィンドウを選択してください", toastType: MessageType.Caution);
+            }
         }
 
+        /// <summary>
+        /// 継続的に解析するタスクを入れ込むメソッド
+        /// </summary>
+        /// <param name="sleepSpan">1ループ後にタイキする時間(ms)</param>
+        /// <param name="cancelToken">キャンセルトークン</param>
         private async void ConstantAnalyze(int sleepSpan, CancellationToken cancelToken) {
             //無限ループする
             await Task.Run(()=> LoopAnalyze(sleepSpan, cancelToken));
         }
 
+        /// <summary>
+        /// 継続的に解析する
+        /// </summary>
+        /// <param name="sleepSpan">1ループ後にタイキする時間(ms)</param>
+        /// <param name="cancelToken">キャンセルトークン</param>
         private async void LoopAnalyze(int sleepSpan, CancellationToken cancelToken)
         {
             while (true)
@@ -143,6 +172,10 @@ namespace UmaTool
             }
         }
 
+        /// <summary>
+        /// OCRを使って画面を解析し、その結果と全イベントデータとの類似度(レーベンシュタイン距離)が最も大きいもの表示する。
+        /// </summary>
+        /// <returns></returns>
         private async Task Analyze()
         {
             int left;
@@ -255,6 +288,14 @@ namespace UmaTool
 
         }
 
+        /// <summary>
+        /// 指定した範囲にある文字列をOCRで解析し、文字列で返す
+        /// </summary>
+        /// <param name="left">左端</param>
+        /// <param name="top">上端</param>
+        /// <param name="width">幅</param>
+        /// <param name="height">高さ</param>
+        /// <returns>OCRした文字列</returns>
         private async Task<String> ImageRangeToString(int left = -1, int top = -1, int width = -1, int height = -1)
         {
             var bmp = screenShoter.GetCurrentSoftwareBitMap(left, top, width, height);
@@ -262,6 +303,11 @@ namespace UmaTool
             return ocr.Text;
         }
 
+        /// <summary>
+        /// ビットマップをOCRし、結果の文字列を返す
+        /// </summary>
+        /// <param name="image"></param>
+        /// <returns></returns>
         private async Task<OcrResult> BmpToString(SoftwareBitmap image)
         {
             OcrEngine ocrEngine = OcrEngine.TryCreateFromUserProfileLanguages();
@@ -270,6 +316,11 @@ namespace UmaTool
             return ocrResult;
         }
 
+        /// <summary>
+        /// スクリーンキャプチャして、保存する
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Capture(object sender, RoutedEventArgs e)
         {
             if (screenShoter.isAvarableScreenShot()) {
@@ -281,6 +332,11 @@ namespace UmaTool
             }
         }
 
+        /// <summary>
+        /// スクリーンショットボタンクリック時の処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void Shot(object sender, RoutedEventArgs e)
         {
             if (!screenShoter.isAvarableScreenShot())
@@ -303,9 +359,14 @@ namespace UmaTool
             }
         }
 
+        /// <summary>
+        /// ウィンドウ選択ボタンクリック時の処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void SelectWindow(object sender, RoutedEventArgs e)
         {
-            // ファイル名に使用できない文字の排除
+            // スクリーンショットの名前にウィンドウ名を使うので、ファイル名に使用できない文字の排除
             var windowName = CommonMethods.RemoveInvalidFileChar(await screenShoter.PickWindow());
 
             screenShoter.StartCaptureAsync();
@@ -313,17 +374,36 @@ namespace UmaTool
 
         }
 
+        /// <summary>
+        /// 終了時の処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void App_Suspending(Object sender, Windows.ApplicationModel.SuspendingEventArgs e)
         {
-            CommonMethods.ToastSimpleMessage("終了処理");
             screenShoter.StopCapture();
+
+            // ここでappデータの保存をする
         }
 
+        /// <summary>
+        /// 開始時の処理
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void App_Resuming(object sender, object e)
         {
-
+            // ここでappデータの読み込みをする
         }
 
+        /// <summary>
+        /// 選択肢の表を更新する
+        /// </summary>
+        /// <param name="eventTitle">イベント名</param>
+        /// <param name="choice1">選択肢1</param>
+        /// <param name="effect1">効果1</param>
+        /// <param name="choice2">選択肢2</param>
+        /// <param name="effect2">効果2</param>
         private void updateChoice(string eventTitle, string choice1, string effect1, string choice2, string effect2) {
             EditTextBlockSync(this.eventTitle, eventTitle);
             EditTextBlockSync(this.choice1, choice1);
@@ -333,7 +413,8 @@ namespace UmaTool
         }
 
         /// <summary>
-        /// テキストブロックを非同期的に編集します
+        /// テキストブロックを非同期的に編集する
+        /// 編集が競合しても勝手に解決してくれる
         /// </summary>
         /// <param name="control">テキストブロックコントロール</param>
         /// <param name="text">代入する文字列</param>
@@ -348,7 +429,11 @@ namespace UmaTool
             });
         }
 
-
+        /// <summary>
+        /// コンソールにメッセージを表示する
+        /// </summary>
+        /// <param name="message">メッセージ</param>
+        /// <param name="type">メッセージの種別</param>
         private void WriteConsole(string message, MessageType type = MessageType.Information) {
             // ついでにログにも書き込んじゃう
             try

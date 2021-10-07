@@ -363,7 +363,7 @@ namespace UmaTool.Common
         }
 
         /// <summary>
-        /// 現在表示中の画面をSoftwareBitmap形式で返す
+        /// 現在表示中の画面を切り抜いてSoftwareBitmap形式で返す
         /// </summary>
         /// <param name="left">取得する範囲の左端</param>
         /// <param name="top">取得する範囲の上端</param>

@@ -15,6 +15,9 @@ using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace UmaTool.Common
 {
+    /// <summary>
+    /// トーストやログに出力する際のメッセージ種別
+    /// </summary>
     public enum MessageType
     {
         Success,
@@ -24,6 +27,9 @@ namespace UmaTool.Common
         Custom
     }
 
+    /// <summary>
+    /// UWPアプリであれば他のアプリでも使えそうな共通機能群
+    /// </summary>
     class BaseCommonMethods
     {
 
@@ -209,9 +215,16 @@ namespace UmaTool.Common
             string rowString = $"{DateTime.Now.ToString("yyyy/MM/dd hh:mm:ss")}\t{title}\t{message}\n";
             WriteLineLocal(GrobalValues.appSettings.logFileName, rowString);
         }
-        public static string RemoveInvalidFileChar(string name) {
 
-            return name.Replace("\\", "￥")
+        /// <summary>
+        /// ファイルパスに使用できない文字列を全角に置き換える
+        /// ファイル名長とかは考慮してないので100%安全ではない
+        /// </summary>
+        /// <param name="text">置換前の文字列</param>
+        /// <returns>置換後の文字列</returns>
+        public static string RemoveInvalidFileChar(string text) {
+
+            return text.Replace("\\", "￥")
                 .Replace("/", "／")
                 .Replace(":", "：")
                 .Replace("*", "＊")
@@ -222,12 +235,31 @@ namespace UmaTool.Common
                 .Replace("|", "｜");
         }
 
+        /// <summary>
+        /// 安全に(例外で止まらないように)文字列を抜き出すメソッド
+        /// 
+        /// startが元文字列より長い場合、空文字列を返す
+        /// startが0未満の場合、最初から抜き出す
+        /// lengthがインデックス外になる場合、最期の文字まで抜き出す
+        /// lengthが0未満の場合、空文字列を返す
+        /// </summary>
+        /// <param name="str">元文字列</param>
+        /// <param name="start">開始位置</param>
+        /// <param name="length">抜き出す長さ</param>
+        /// <returns></returns>
         public static string SubstringSafe(string str,int start,int length = -1) {
             start = Math.Max(Math.Min(str.Length - 1,start),0);
             length = Math.Min(Math.Max(length, 0), str.Length - start);
             return str.Substring(start,length);
         }
 
+        /// <summary>
+        /// Byte配列のBGAR(深さ8bits)ビットマップをSoftwareBitmapに変換するメソッド
+        /// </summary>
+        /// <param name="bytes">ビットマップ</param>
+        /// <param name="width">ビットマップの幅</param>
+        /// <param name="height">ビットマップの高さ</param>
+        /// <returns>SoftwareBitmapのビットマップ</returns>
         public static SoftwareBitmap BytesToSoftwareBMP(Byte[] bytes, int width, int height)
         {
             return SoftwareBitmap.CreateCopyFromBuffer(bytes.AsBuffer(), BitmapPixelFormat.Bgra8, width, height);
