@@ -31,6 +31,13 @@ namespace UmaTool.Common
         public string path;
     };
 
+    // 参考文献: https://docs.microsoft.com/ja-jp/windows/uwp/audio-video-camera/screen-capture
+
+    /// <summary>
+    /// スクリーンプレビュー、スクリーンキャプチャ、スクリーンショットを行うクラス
+    /// 
+    /// 
+    /// </summary>
     class ScreenShoter
     {
         // Capture API objects.
@@ -51,7 +58,12 @@ namespace UmaTool.Common
 
         private SpriteVisual _visual = null;
 
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="position"></param>
+        /// <param name="size"></param>
         public void Setup(Page page,Vector3 position, Vector2 size)
         {
             _canvasDevice = new CanvasDevice();
@@ -81,32 +93,10 @@ namespace UmaTool.Common
             ElementCompositionPreview.SetElementChildVisual(page, _visual);
         }
 
-
-        public SpriteVisual visual{
-            set { this._visual = value; }
-            get { return this._visual; }
-        }
-
-        public float visualX
-        {
-            set
-            {
-                var vec = this._visual.Offset;
-                vec.X = value;
-            }
-            get { return this._visual.Offset.X; }
-        }
-
-        public float visualY
-        {
-            set
-            {
-                var vec = this._visual.Offset;
-                vec.Y = value;
-            }
-            get { return this._visual.Offset.Y; }
-        }
-
+        /// <summary>
+        /// 開いているウィンドウ名を取得するメソッド
+        /// </summary>
+        /// <returns>開いているウィンドウ名</returns>
         public string GetWindowName() {
             if (this.item == null)
             {
@@ -118,6 +108,10 @@ namespace UmaTool.Common
             }
         }
 
+        /// <summary>
+        /// ウィンドウを選択するタスクを実行する
+        /// </summary>
+        /// <returns>(タスク)開いたウィンドウ名</returns>
         public async Task<string> PickWindow() {
             // The GraphicsCapturePicker follows the same pattern the
             // file pickers do.
@@ -132,6 +126,10 @@ namespace UmaTool.Common
             else return item.DisplayName;
         }
 
+        /// <summary>
+        /// 非同期のウィンドウプレビューを開始するメソッド
+        /// setup、ウィンドウ指定が完了してる状態でなければならない
+        /// </summary>
         public void StartCaptureAsync()
         {
             if (picker == null || item == null)
@@ -148,6 +146,10 @@ namespace UmaTool.Common
             }
         }
 
+        /// <summary>
+        /// キャプチャの非同期タスクを入れ込み、投影する
+        /// </summary>
+        /// <param name="item"></param>
         private void StartCaptureInternal(GraphicsCaptureItem item)
         {
             // Stop the previous capture if we had one.
@@ -188,6 +190,10 @@ namespace UmaTool.Common
             _session.StartCapture();
         }
 
+        /// <summary>
+        /// キャプチャを強制終了するメソッド
+        /// ただし、ウィンドウ指定した情報までは放棄しない
+        /// </summary>
         public void StopCaptureLite()
         {
             this._session?.Dispose();
@@ -197,6 +203,9 @@ namespace UmaTool.Common
             this._framePool = null;
         }
 
+        /// <summary>
+        /// キャプチャを強制終了するメソッド
+        /// </summary>
         public void StopCapture() {
             StopCaptureLite();
             this.item = null;
@@ -417,11 +426,17 @@ namespace UmaTool.Common
 
         }
 
+        /// <summary>
+        /// キャプチャ対象のウィンドウの実体フレーム幅
+        /// </summary>
         public double frameWidth
         {
             get { return this._currentFrame.Bounds.Width; }
         }
 
+        /// <summary>
+        /// キャプチャ対象のウィンドウの実体フレーム高
+        /// </summary>
         public double frameHeight
         {
             get { return this._currentFrame.Bounds.Height; }

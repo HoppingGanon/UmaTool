@@ -121,6 +121,7 @@
     </Compile>
     <Compile Include="Common\AppSettings.cs" />
     <Compile Include="Common\CommonMethods.cs" />
+    <Compile Include="Common\EventData.cs" />
     <Compile Include="Common\ScreenShoter.cs" />
     <Compile Include="Common\GrobalValues.cs" />
     <Compile Include="Common\BaseCommonMethods.cs" />
@@ -162,6 +163,9 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Fastenshtein">
+      <Version>1.0.0.7</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.12</Version>
     </PackageReference>
@@ -183,7 +187,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <None Include="Assets\EventData.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>

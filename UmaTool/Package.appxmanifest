@@ -10,7 +10,7 @@
   <Identity
     Name="635ef6c9-6dc7-4d9c-95f3-741339b6c5d7"
     Publisher="CN=Riku"
-    Version="1.0.0.0" />
+    Version="0.1.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="635ef6c9-6dc7-4d9c-95f3-741339b6c5d7" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

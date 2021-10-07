@@ -35,15 +35,48 @@
         <StackPanel Grid.Row="0" Grid.Column="2" HorizontalAlignment="Center" VerticalAlignment="Center">
             <Button Content="設定" FontSize="9" Background="#FFFFFFA0" Margin="4,0,4,0" />
         </StackPanel>
-        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Vertical" Margin="0,0,0,0">
+        <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,0">
+            <!-- ボタン群(左側) -->
             <StackPanel>
-                <Button x:Name="screenShotButton" Click="Shot" Content="スクリーンショット" FontSize="14" Background="#FFFFFFA0" Padding="20,5,20,5" Margin="0,9,0,0" HorizontalAlignment="Center"/>
-                <Button x:Name="captureButton" Click="Capture" Content="録画開始" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="20,5,20,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" IsEnabled="False" />
-                <Button x:Name="autoAnalyzeButton" Click="StartAutoAnalyze" Content="選択肢自動解析" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="20,5,20,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" />
-                <Button x:Name="selectWindowButton" Click="SelectWindow" Content="ウィンドウを選択" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="20,5,20,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" />
+                <Button x:Name="screenShotButton" MinWidth="120" Click="Shot" Content="スクリーンショット" FontSize="14" Background="#FFFFFFA0" Padding="7,5,7,5" Margin="0,9,0,0" HorizontalAlignment="Center"/>
+                <Button x:Name="captureButton" MinWidth="120" Click="Capture" Content="録画開始" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="7,5,7,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" IsEnabled="False" />
+                <Button x:Name="autoAnalyzeButton" MinWidth="120" Click="StartAutoAnalyze" Content="選択肢自動解析" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="7,5,7,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" />
+                <Button x:Name="selectWindowButton" MinWidth="120" Click="SelectWindow" Content="ウィンドウを選択" FontSize="14" Background="{Binding Background, ElementName=screenShotButton}" Padding="7,5,7,5" Margin="0,9,0,0" HorizontalAlignment="Center" BorderBrush="{Binding BorderBrush, ElementName=screenShotButton}" />
             </StackPanel>
 
+            <!-- 選択肢解析結果(右側) -->
+            <Grid x:Name="resultGrid" Margin="5,10,0,10" MinWidth="200" Visibility="Collapsed" >
+                <!--グリッドの比率や数を指定-->
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="1*"></RowDefinition>
+                    <RowDefinition Height="1*"></RowDefinition>
+                    <RowDefinition Height="1*"></RowDefinition>
+                    <RowDefinition Height="3*"></RowDefinition>
+                    <RowDefinition Height="1*"></RowDefinition>
+                    <RowDefinition Height="3*"></RowDefinition>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1*"></ColumnDefinition>
+                </Grid.ColumnDefinitions>
+
+                <!--グリッドの色や線を決定-->
+                <Border Grid.Row="0" Grid.Column="0" BorderThickness="1" BorderBrush="Black" Background="#FFFFE89D" />
+                <Border Grid.Row="2" Grid.Column="0" BorderThickness="1" BorderBrush="Black" Background="#FFFFE89D" />
+                <Border Grid.Row="3" Grid.Column="0" BorderThickness="1" BorderBrush="Black" />
+                <Border Grid.Row="4" Grid.Column="0" BorderThickness="1" BorderBrush="Black" Background="#FFFFE89D" />
+                <Border Grid.Row="5" Grid.Column="0" BorderThickness="1" BorderBrush="Black" />
+
+                <!-- 結果表示 -->
+                <TextBlock x:Name="eventTitle" Grid.Row="0" Grid.Column="0" FontSize="11" Text="" />
+                <TextBlock x:Name="choice1" Grid.Row="2" Grid.Column="0" FontSize="11" Text="" />
+                <TextBlock x:Name="effect1" Grid.Row="3" Grid.Column="0" FontSize="11" Text="" />
+                <TextBlock x:Name="choice2" Grid.Row="4" Grid.Column="0" FontSize="11" Text="" />
+                <TextBlock x:Name="effect2" Grid.Row="5" Grid.Column="0" FontSize="11" Text="" />
+
+            </Grid>
         </StackPanel>
+        
+        <!-- スクリーンキャプチャプレビュー領域 -->
         <RelativePanel Grid.Row="2" Grid.Column="1">
             <Rectangle  x:Name="previewPanel"
                         Stroke="Black"
@@ -54,7 +87,8 @@
                         RelativePanel.AlignRightWithPanel="True" />
         </RelativePanel>
 
-        <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5">
+        <!-- クレジット -->
+            <StackPanel Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,5,5">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="UmaTool" Margin="0,0,5,0"></TextBlock>
                 <TextBlock Text="version "></TextBlock>
@@ -63,6 +97,7 @@
             </StackPanel>
         </StackPanel>
 
+        <!-- コンソール -->
         <StackPanel Grid.Row="4" Grid.ColumnSpan="3" Orientation="Vertical">
             <TextBlock x:Name="consoleBox" Text=""></TextBlock>
         </StackPanel>
