@@ -189,14 +189,20 @@ namespace UmaTool
         /// <param name="cancelToken">キャンセルトークン</param>
         private async void LoopAnalyze(int sleepSpan, CancellationToken cancelToken)
         {
-            while (true)
+            try
             {
-                if (cancelToken.IsCancellationRequested)
+                while (true)
                 {
-                    return;
+                    if (cancelToken.IsCancellationRequested)
+                    {
+                        return;
+                    }
+                    await Analyze();
+                    await Task.Delay(sleepSpan);
                 }
-                await Analyze();
-                await Task.Delay(sleepSpan);
+            }catch (Exception e)
+            {
+                CommonMethods.ToastSimpleMessage("解析の途中でエラーが発生しました。",e.Message,MessageType.Error);
             }
         }
 
