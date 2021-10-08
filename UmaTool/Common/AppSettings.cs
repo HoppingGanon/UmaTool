@@ -9,32 +9,55 @@ namespace UmaTool.Common
 {
     class AppSettings
     {
-        public string logFileName = "noname.log";
-        public int logMaxLines = 255;
-
-        public Dictionary<String, RelativeRange[]> ocrRangesDic = new Dictionary<String, RelativeRange[]>();
-        public Dictionary<String, OuterRange> clipRangeDic = new Dictionary<String, OuterRange>();
-
-        public int minEventStrLength = 5;
-        public double defDistRate = 0.7;
+        //ファイル名
+        public static string AppSettingsPath = "Assets/AppSettings.json";
 
         /// <summary>
         /// 設定ファイルを読み込んで、JSONオブジェクトをAppSettingsにデシリアライズする
         /// </summary>
-        public static void loadAppSettings()
+        public static AppSettings loadAppSettings()
         {
             try
             {
                 //ファイルをビルドに含めるには、ファイルのプロパティから「出力ディレクトリにコピー」等を設定する必要あり
-                const string AppSettingsPath = "Assets/AppSettings.json";
-                GrobalValues.appSettings = JsonConvert.DeserializeObject<AppSettings>(BaseCommonMethods.getContent(AppSettingsPath));
+                return JsonConvert.DeserializeObject<AppSettings>(BaseCommonMethods.getContent(AppSettingsPath));
             }
             catch (Exception e)
             {
-                GrobalValues.appSettings = new AppSettings();
-                BaseCommonMethods.ToastSimpleMessage("'AppSettings.json'が読み込めませんでした", e.Message, MessageType.Error);
+                BaseCommonMethods.ToastSimpleMessage($"'{AppSettingsPath}'が読み込めませんでした", e.Message, MessageType.Error);
+                return new AppSettings();
             }
         }
+
+        /// <summary>
+        /// ログファイルの出力名
+        /// </summary>
+        public string logFileName = "noname.log";
+
+        /// <summary>
+        /// ログファイルの保存世代数
+        /// </summary>
+        public int logMaxLines = 255;
+
+        /// <summary>
+        /// OCRで読み取る範囲をもった配列
+        /// </summary>
+        public Dictionary<String, RelativeRange[]> ocrRangesDicList = new Dictionary<String, RelativeRange[]>();
+        
+        /// <summary>
+        /// OCRするときに除くウィンドウ枠の分の厚さ
+        /// </summary>
+        public Dictionary<String, OuterRange> clipRangeDic = new Dictionary<String, OuterRange>();
+
+        /// <summary>
+        /// ここに指定した数より、イベント選択肢の文字列の合計が少なければスキップする
+        /// </summary>
+        public int minEventStrLength = 5;
+
+        /// <summary>
+        /// OCR認識文字列のしきい率
+        /// </summary>
+        public double defDistRate = 0.7;
     }
 
     class RelativeRange

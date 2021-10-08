@@ -9,14 +9,14 @@
 
   <Identity
     Name="635ef6c9-6dc7-4d9c-95f3-741339b6c5d7"
-    Publisher="CN=Riku"
-    Version="0.1.0.0" />
+    Publisher="CN=HoppingGanon"
+    Version="0.1.1.0" />
 
   <mp:PhoneIdentity PhoneProductId="635ef6c9-6dc7-4d9c-95f3-741339b6c5d7" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
     <DisplayName>UmaTool</DisplayName>
-    <PublisherDisplayName>Riku</PublisherDisplayName>
+    <PublisherDisplayName>HoppingGanon</PublisherDisplayName>
     <Logo>Assets\Image\StoreLogo.png</Logo>
   </Properties>
 

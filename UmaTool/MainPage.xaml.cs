@@ -57,7 +57,7 @@ namespace UmaTool
             Application.Current.Suspending += new SuspendingEventHandler(this.App_Suspending);
             Application.Current.Resuming += new EventHandler<object>(this.App_Resuming);
 
-            screenShoter = new ScreenShoter();
+            screenShoter = new ScreenShoter(); 
             eventDataList = EventData.GetEventDataList();
             isAnalyerActive = false;
 
@@ -83,16 +83,44 @@ namespace UmaTool
             var version = Windows.ApplicationModel.Package.Current.Id.Version;
             AppVersion.Text = $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}";
 
-            var ryaku = previewPanel.TransformToVisual(mainGrid).TransformPoint(new Windows.Foundation.Point(0, 0));
+            // イベントデータがなければボタンを非活性化
+            if (eventDataList.Length == 0)
+            {
+                this.autoAnalyzeButton.IsEnabled = false;
+            }
+        }
 
-            // スクリーンショットを投影する位置を調整
-            var pos = new Vector3((float)ryaku.X, (float)ryaku.Y, 1f);
-            var siz = previewPanel.ActualSize;
+        private async void PickEventDataJsonPath(object sender, RoutedEventArgs e) {
+            var picker = new Windows.Storage.Pickers.FileOpenPicker();
+            picker.ViewMode = Windows.Storage.Pickers.PickerViewMode.Thumbnail;
+            picker.SuggestedStartLocation = Windows.Storage.Pickers.PickerLocationId.Desktop;
+            picker.FileTypeFilter.Add(".json");
 
-            screenShoter.Setup(this,
-                    pos,
-                    siz
-                );
+            // ファイルピッカーでファイルを開く
+            StorageFile file = await picker.PickSingleFileAsync();
+
+            if (file == null) {
+                return;
+            }
+
+            // ファイルをコピーする
+            await file.CopyAsync(ApplicationData.Current.LocalFolder, Common.EventData.fileName, NameCollisionOption.ReplaceExisting);
+
+            await Task.Delay(2000);
+
+            // 再度イベントデータの読み込み
+            this.eventDataList = Common.EventData.GetEventDataList();
+            if(this.eventDataList.Length == 0)
+            {
+                // 読み込めていない場合
+                this.autoAnalyzeButton.IsEnabled = false;
+            }
+            else
+            {
+                // 読み込めた場合
+                this.autoAnalyzeButton.IsEnabled = true;
+            }
+
 
         }
 
@@ -189,16 +217,16 @@ namespace UmaTool
             int cBottom;
 
             WriteConsole("選択肢解析中...", MessageType.Information);
-            ocrTexts = new string[GrobalValues.appSettings.ocrRangesDic["twoChoise"].Length];
+            ocrTexts = new string[GrobalValues.appSettings.ocrRangesDicList["twoChoise"].Length];
 
             // まずは画面キャプチャから
             int i=0;
-            foreach (var range in GrobalValues.appSettings.ocrRangesDic["twoChoise"])
+            foreach (var range in GrobalValues.appSettings.ocrRangesDicList["twoChoise"])
             {
                 cLeft = GrobalValues.appSettings.clipRangeDic["twoChoise"].left;
                 cTop = GrobalValues.appSettings.clipRangeDic["twoChoise"].top;
                 cRight = GrobalValues.appSettings.clipRangeDic["twoChoise"].right;
-                cBottom = GrobalValues.appSettings.clipRangeDic["twoChoise"].top;
+                cBottom = GrobalValues.appSettings.clipRangeDic["twoChoise"].buttom;
 
                 left = GrobalValues.appSettings.clipRangeDic["twoChoise"].left + (int)(range.left * (screenShoter.frameWidth - cLeft - cTop) / 100);
                 top = GrobalValues.appSettings.clipRangeDic["twoChoise"].top + (int)(range.top * screenShoter.frameHeight / 100);
@@ -366,6 +394,20 @@ namespace UmaTool
         /// <param name="e"></param>
         private async void SelectWindow(object sender, RoutedEventArgs e)
         {
+
+            if (!screenShoter.isAvarableScreenShot())
+            {
+                var ryaku = previewPanel.TransformToVisual(mainGrid).TransformPoint(new Windows.Foundation.Point(0, 0));
+
+                // スクリーンショットを投影する位置を調整
+                var pos = new Vector3((float)ryaku.X, (float)ryaku.Y, 1f);
+                var siz = previewPanel.ActualSize;
+
+                screenShoter.Setup(this,
+                        pos,
+                        siz
+                    );
+            }
             // スクリーンショットの名前にウィンドウ名を使うので、ファイル名に使用できない文字の排除
             var windowName = CommonMethods.RemoveInvalidFileChar(await screenShoter.PickWindow());
 

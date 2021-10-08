@@ -30,6 +30,9 @@ namespace UmaTool
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+
+            // 設定の読み込み
+            Common.GrobalValues.appSettings = Common.AppSettings.loadAppSettings();
         }
 
         /// <summary>
@@ -70,9 +73,6 @@ namespace UmaTool
                 }
                 // 現在のウィンドウがアクティブであることを確認します
                 Window.Current.Activate();
-
-                // 設定の読み込み
-                Common.AppSettings.loadAppSettings();
             }
         }
 

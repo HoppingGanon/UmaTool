@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Storage;
+using System.IO;
 
 namespace UmaTool.Common
 {
@@ -12,22 +14,37 @@ namespace UmaTool.Common
     /// </summary>
     class EventData
     {
+        // イベントデータのファイル名
+        public static string fileName = "EventData.json";
+
         /// <summary>
         /// 静的メソッドで、EventData.jsonをシリアライズする
         /// </summary>
         /// <returns>読み取ったEventData配列</returns>
         public static EventData[] GetEventDataList()
         {
+            StorageFile file;
             try
             {
+                // ファイルを取得
+                var task = ApplicationData.Current.LocalFolder.GetFileAsync(fileName);
+                while (task.Status == Windows.Foundation.AsyncStatus.Started)
+                {
+                    //処理が終了するまで待機
+                    Task.Delay(50);
+                }
+                file = task.GetResults();
+
                 //ファイルをビルドに含めるには、ファイルのプロパティから「出力ディレクトリにコピー」等を設定する必要あり
-                const string jsonPath = "Assets/EventData.json";
-                return JsonConvert.DeserializeObject<EventData[]>(BaseCommonMethods.getContent(jsonPath));
+                return JsonConvert.DeserializeObject<EventData[]>(BaseCommonMethods.getContent(file.Path));
+            }
+            catch (FileNotFoundException e)
+            {
+                BaseCommonMethods.ToastSimpleMessage($"'{fileName}'が読み込めませんでした", "ファイルがありません", MessageType.Error);
             }
             catch (Exception e)
             {
-                GrobalValues.appSettings = new AppSettings();
-                BaseCommonMethods.ToastSimpleMessage("'EventData.json'が読み込めませんでした", e.Message, MessageType.Error);
+                BaseCommonMethods.ToastSimpleMessage($"'{fileName}'が読み込めませんでした", e.Message, MessageType.Error);
             }
             return new EventData[0];
         }
